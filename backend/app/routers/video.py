@@ -88,7 +88,7 @@ async def get_video_url(
         current_user_id=current_user['id']
     )
 
-@router.post('/{video_url}/process')
+@router.post('/{video_id}/process')
 async def process_video(
     video_id: int,
     db: session_dep,

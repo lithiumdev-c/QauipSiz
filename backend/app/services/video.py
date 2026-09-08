@@ -5,7 +5,7 @@ from app.repositories.video import VideoRepository
 from app.repositories.case import CaseRepository
 from app.services.organization_member import OrganizationMemberService
 from app.utils.storage import upload_video, delete_video, get_video_url
-from app.utils.video_processing import get_video_info
+from app.utils.video_processing import get_video_info, process_video
 
 class VideoService:
     @classmethod
@@ -235,3 +235,50 @@ class VideoService:
         return {
             "url": get_video_url(video.file_path),
         }
+
+    @classmethod
+    async def process(
+        cls,
+        session: AsyncSession,
+        video_id: int,
+        current_user_id: int
+    ):
+        video = await VideoRepository.get_video(
+            session=session,
+            video_id=video_id
+        )
+
+        if not video:
+            raise HTTPException(
+                status_code=404,
+                detail='Video not found!'
+            )
+
+        case = await CaseRepository.get_case(
+            session=session,
+            case_id=video.case_id
+        )
+
+        if not case:
+            raise HTTPException(
+                status_code=404,
+                detail='Case not found!'
+            )
+
+        member = await OrganizationMemberService.get_member_by_user(
+            session=session,
+            user_id=current_user_id,
+            organization_id=case.organization_id
+        )
+
+        if not member:
+            raise HTTPException(
+                status_code=403,
+                detail='You are not a member of this organization!'
+            )
+
+        video_url = get_video_url(video.file_path)
+
+        statistics = await process_video(video_url)
+
+        return statistics

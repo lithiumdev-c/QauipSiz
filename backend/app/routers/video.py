@@ -87,3 +87,15 @@ async def get_video_url(
         video_id=video_id,
         current_user_id=current_user['id']
     )
+
+@router.post('/{video_url}/process')
+async def process_video(
+    video_id: int,
+    db: session_dep,
+    current_user: Annotated[dict, Depends(get_current_user)]
+):
+    return await VideoService.process(
+        session=db,
+        video_id=video_id,
+        current_user_id=current_user['id']
+    )

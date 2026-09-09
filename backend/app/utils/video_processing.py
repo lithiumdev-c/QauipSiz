@@ -10,7 +10,7 @@ from io import BytesIO
 
 from PIL import Image
 
-from app.utils.matching import calculate_person_similarity, get_reference_embedding
+from app.utils.matching import calculate_person_similarity
 from app.utils.detection import detect_people
 
 MATCH_THRESHOLD = 0.75
@@ -157,11 +157,17 @@ async def process_video(
                         f"similarity={best_similarity:.4f}"
                     )
 
+                    success, buffer = cv2.imencode(".jpg", frame)
+
+                    if not success:
+                        continue
+
                     current_match = {
                         "person_id": best_person_id,
                         "timestamp": timestamp,
                         "similarity": best_similarity,
                         "bbox": person["bbox"],
+                        "frame_bytes": buffer.tobytes(),
                     }
 
                     previous_match = best_matches.get(

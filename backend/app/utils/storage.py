@@ -113,3 +113,39 @@ def get_person_photo_url(file_path: str) -> str:
         )
 
     return signed_url
+
+async def upload_match_frame(
+    frame_bytes: bytes,
+    video_id: int,
+) -> str:
+    file_path = (
+        f"videos/{video_id}/{uuid.uuid4()}.jpg"
+    )
+
+    supabase.storage.from_("match-frames").upload(
+        file_path,
+        frame_bytes,
+        {
+            "content-type": "image/jpeg",
+        },
+    )
+
+    return file_path
+
+
+def get_match_frame_url(file_path: str) -> str:
+    response = supabase.storage.from_(
+        "match-frames"
+    ).create_signed_url(
+        file_path,
+        3600,
+    )
+
+    signed_url = response.get("signedURL")
+
+    if not signed_url:
+        raise RuntimeError(
+            "Failed to create match frame signed URL"
+        )
+
+    return signed_url

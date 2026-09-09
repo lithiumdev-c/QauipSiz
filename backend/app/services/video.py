@@ -4,8 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.video import VideoRepository
 from app.repositories.case import CaseRepository
 from app.repositories.person import PersonRepository
+from app.repositories.match import MatchRepository
 from app.services.organization_member import OrganizationMemberService
-from app.utils.storage import upload_video, delete_video, get_video_url, get_person_photo_url
+from app.utils.storage import upload_video, delete_video, get_video_url, get_person_photo_url, upload_match_frame, get_match_frame_url
 from app.utils.video_processing import get_video_info, process_video, load_image_from_url
 from app.utils.matching import get_reference_embedding
 from app.repositories.detection import DetectionRepository
@@ -327,6 +328,23 @@ class VideoService:
                 video_id=video.id,
                 detections=statistics["detections"],
             )
+
+            for match in statistics["matches"]:
+                frame_path = await upload_match_frame(
+                    frame_bytes=match["frame_bytes"],
+                    video_id=video.id,
+                )
+
+                frame_url = get_match_frame_url(frame_path)
+
+                await MatchRepository.create(
+                    session=session,
+                    video_id=video.id,
+                    person_id=match["person_id"],
+                    timestamp=match["timestamp"],
+                    similarity=match["similarity"],
+                    frame_url=frame_url,
+                )
 
             video.status = "completed"
             await session.commit()

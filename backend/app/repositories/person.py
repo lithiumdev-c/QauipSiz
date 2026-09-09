@@ -70,3 +70,22 @@ class PersonRepository:
 
         await session.delete(person)
         await session.commit()
+
+    @classmethod
+    async def update_photo(cls, session: AsyncSession, person_id: int, photo_url: str):
+        query = await session.execute(
+            select(Person)
+            .where(Person.id == person_id)
+        )
+
+        person = query.scalar_one_or_none()
+
+        if not person:
+            return None
+
+        person.photo_url = photo_url
+
+        await session.commit()
+        await session.refresh(person)
+
+        return person

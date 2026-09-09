@@ -46,3 +46,31 @@ def get_video_url(file_path: str) -> str:
         raise RuntimeError("Failed to create signed URL")
 
     return signed_url
+
+async def upload_person_photo(
+    file: UploadFile,
+    person_id: int,
+) -> str:
+    extension=''
+
+    if file.filename and '.' in file.filename:
+        extension = '.' + file.filename.rsplit('.', 1)[1].lower()
+
+    file_path = (
+        f'persons/{person_id}/{uuid.uuid4()}{extension}'
+    )
+
+    file_bytes = await file.read()
+
+    supabase.storage.from_('persons').upload(
+        file_path,
+        file_bytes,
+        {
+        'content-type': file.content_type or 'application/octet-stream'
+        },
+    )
+
+    return file_path
+
+def delete_person_photo(file_path: str):
+    supabase.storage.from_('persons').remove([file_path])

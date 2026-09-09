@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File
 
 from app.core.database import session_dep
 from app.routers.auth import get_current_user
@@ -92,3 +92,20 @@ async def delete_person(
     )
 
     return {"msg": "Person deleted!"}
+
+@router.post(
+    '/{person_id}/photo',
+    response_model=PersonResponse
+)
+async def upload_person_photo(
+    person_id: int,
+    db: session_dep,
+    current_user: Annotated[dict, Depends(get_current_user)],
+    photo: UploadFile = File(...),
+):
+    return await PersonService.upload_photo(
+        session=db,
+        person_id=person_id,
+        file=photo,
+        current_user_id=current_user['id']
+    )

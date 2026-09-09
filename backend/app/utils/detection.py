@@ -1,10 +1,13 @@
 from typing import cast
+from pathlib import Path
 
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
+MODEL_PATH = Path(__file__).resolve().parent / 'yolo11n.pt'
 
-model = YOLO("yolo11n.pt")
+
+model = YOLO(MODEL_PATH)
 
 CONFIDENCE_THRESHOLD = 0.5
 

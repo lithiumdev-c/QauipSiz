@@ -6,6 +6,7 @@ from app.repositories.case import CaseRepository
 from app.services.organization_member import OrganizationMemberService
 from app.utils.storage import upload_video, delete_video, get_video_url
 from app.utils.video_processing import get_video_info, process_video
+from app.repositories.detection import DetectionRepository
 
 class VideoService:
     @classmethod
@@ -280,5 +281,11 @@ class VideoService:
         video_url = get_video_url(video.file_path)
 
         statistics = await process_video(video_url)
+
+        await DetectionRepository.create_many(
+            session=session,
+            video_id=video.id,
+            detections=statistics['detections']
+        )
 
         return statistics

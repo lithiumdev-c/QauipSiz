@@ -14,7 +14,7 @@ router = APIRouter(
 
 @router.get(
     '/video/{video_id}',
-    response_model=DetectionResponse
+    response_model=list[DetectionResponse]
 )
 async def get_video_detections(
     video_id: int,

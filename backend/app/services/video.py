@@ -3,9 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.video import VideoRepository
 from app.repositories.case import CaseRepository
+from app.repositories.person import PersonRepository
 from app.services.organization_member import OrganizationMemberService
-from app.utils.storage import upload_video, delete_video, get_video_url
-from app.utils.video_processing import get_video_info, process_video
+from app.utils.storage import upload_video, delete_video, get_video_url, get_person_photo_url
+from app.utils.video_processing import get_video_info, process_video, load_image_from_url
+from app.utils.matching import get_reference_embedding
 from app.repositories.detection import DetectionRepository
 
 class VideoService:
@@ -242,60 +244,96 @@ class VideoService:
         cls,
         session: AsyncSession,
         video_id: int,
-        current_user_id: int
+        current_user_id: int,
     ):
         video = await VideoRepository.get_video(
             session=session,
-            video_id=video_id
+            video_id=video_id,
         )
 
         if not video:
             raise HTTPException(
                 status_code=404,
-                detail='Video not found!'
+                detail="Video not found!",
             )
 
         case = await CaseRepository.get_case(
             session=session,
-            case_id=video.case_id
+            case_id=video.case_id,
         )
 
         if not case:
             raise HTTPException(
                 status_code=404,
-                detail='Case not found!'
+                detail="Case not found!",
             )
 
         member = await OrganizationMemberService.get_member_by_user(
             session=session,
             user_id=current_user_id,
-            organization_id=case.organization_id
+            organization_id=case.organization_id,
         )
 
         if not member:
             raise HTTPException(
                 status_code=403,
-                detail='You are not a member of this organization!'
+                detail="You are not a member of this organization!",
             )
-        
+
+        # Получаем всех людей из дела
+        persons = await PersonRepository.get_by_case(
+            session=session,
+            case_id=case.id,
+        )
+
+        # Готовим embeddings фотографий
+        reference_embeddings = {}
+
+        for person in persons:
+            if not person.photo_url:
+                continue
+
+            photo_url = get_person_photo_url(
+                person.photo_url
+            )
+
+            reference_image = await load_image_from_url(
+                photo_url
+            )
+
+            reference_embeddings[person.id] = (
+                get_reference_embedding(reference_image)
+            )
+
+        if not reference_embeddings:
+            raise HTTPException(
+                status_code=400,
+                detail="No persons with reference photos found in this case!",
+            )
+
         video_url = get_video_url(video.file_path)
 
-        video.status = 'processing'
+        video.status = "processing"
         await session.commit()
+
         try:
-            statistics = await process_video(video_url)
+            statistics = await process_video(
+                video_url=video_url,
+                reference_embeddings=reference_embeddings,
+            )
 
             await DetectionRepository.create_many(
                 session=session,
                 video_id=video.id,
-                detections=statistics['detections']
+                detections=statistics["detections"],
             )
 
-            video.status = 'completed'
+            video.status = "completed"
             await session.commit()
 
             return statistics
+
         except Exception:
-            video.status = 'failed'
+            video.status = "failed"
             await session.commit()
             raise

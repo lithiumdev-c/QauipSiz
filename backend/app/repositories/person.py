@@ -89,3 +89,17 @@ class PersonRepository:
         await session.refresh(person)
 
         return person
+
+    @classmethod
+    async def get_by_case(
+        cls,
+        session: AsyncSession,
+        case_id: int,
+    ) -> list[Person]:
+        result = await session.execute(
+            select(Person)
+            .where(Person.case_id == case_id)
+        )
+
+        return list(result.scalars().all())
+        

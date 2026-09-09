@@ -277,15 +277,25 @@ class VideoService:
                 status_code=403,
                 detail='You are not a member of this organization!'
             )
-
+        
         video_url = get_video_url(video.file_path)
 
-        statistics = await process_video(video_url)
+        video.status = 'processing'
+        await session.commit()
+        try:
+            statistics = await process_video(video_url)
 
-        await DetectionRepository.create_many(
-            session=session,
-            video_id=video.id,
-            detections=statistics['detections']
-        )
+            await DetectionRepository.create_many(
+                session=session,
+                video_id=video.id,
+                detections=statistics['detections']
+            )
 
-        return statistics
+            video.status = 'completed'
+            await session.commit()
+
+            return statistics
+        except Exception:
+            video.status = 'failed'
+            await session.commit()
+            raise

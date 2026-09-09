@@ -98,16 +98,18 @@ async def process_video(video_url: str) -> dict:
             if not ret:
                 break
 
-            people = detect_people(frame)
-
             timestamp = processed_frames / fps
+
+            people = detect_people(frame)
 
             for person in people:
                 detections.append({
-                    'timestamp': timestamp,
-                    'confidence': person['confidence'],
-                    'bbox': person['bbox']
+                    "timestamp": timestamp,
+                    "confidence": person["confidence"],
+                    "bbox": person["bbox"],
                 })
+
+            processed_frames += 1
 
         processing_time = time.perf_counter() - start_time
 
@@ -138,6 +140,7 @@ async def process_video(video_url: str) -> dict:
             "avg_confidence": avg_confidence,
             "max_confidence": max_confidence,
             "processing_time": processing_time,
+            "detections": detections
         }
 
         print()
@@ -153,10 +156,7 @@ async def process_video(video_url: str) -> dict:
         print("╰────────────────────────────────────╯")
         print()
 
-        return {
-            **statistics,
-            'detections': detections
-        }
+        return statistics
 
     finally:
         if cap is not None:

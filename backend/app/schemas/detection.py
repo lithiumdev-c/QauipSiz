@@ -1,8 +1,10 @@
 from pydantic import BaseModel, ConfigDict
 
+
 class DetectionResponse(BaseModel):
     id: int
     video_id: int
+
     timestamp: float
     confidence: float
 
@@ -11,4 +13,6 @@ class DetectionResponse(BaseModel):
     x2: int
     y2: int
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+    )

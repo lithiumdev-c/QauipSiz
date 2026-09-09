@@ -20,6 +20,19 @@ class Detection(Base):
         nullable=False
     )
 
+    confidence: Mapped[float] = mapped_column(
+        Float,
+        nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+
     x1: Mapped[int] = mapped_column(Integer, nullable=False)
     y1: Mapped[int] = mapped_column(Integer, nullable=False)
     x2: Mapped[int] = mapped_column(Integer, nullable=False)

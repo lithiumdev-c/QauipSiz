@@ -1,4 +1,4 @@
-import logoUrl from "../assets/logo.png"
+import logoUrl from "../assets/Firefly.png"
 
 /**
  * QauipSiz logo + wordmark.
@@ -21,7 +21,7 @@ export default function Logo({ size = 28, withWordmark = true, className = "" })
         style={{ height: size, width: size }}
       />
       {withWordmark && (
-        <span className="text-[15px] font-semibold tracking-[0.02em] text-fg">
+        <span className="text-[24px] font-semibold tracking-[0.02em] text-fg">
           QauipSiz
         </span>
       )}

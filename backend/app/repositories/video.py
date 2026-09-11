@@ -73,3 +73,25 @@ class VideoRepository:
 
         await session.delete(video)
         await session.commit()
+
+    @classmethod
+    async def update_status(
+        cls,
+        session: AsyncSession,
+        video_id: int,
+        status: str,
+    ):
+        video = await cls.get_video(
+            session=session,
+            video_id=video_id,
+        )
+
+        if not video:
+            return None
+
+        video.status = status
+
+        await session.commit()
+        await session.refresh(video)
+
+        return video

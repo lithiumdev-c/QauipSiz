@@ -335,21 +335,35 @@ class VideoService:
                     video_id=video.id,
                 )
 
-                frame_url = get_match_frame_url(frame_path)
-
+                # store the storage path — signed URLs expire (1h) and are minted on demand
                 await MatchRepository.create(
                     session=session,
                     video_id=video.id,
                     person_id=match["person_id"],
                     timestamp=match["timestamp"],
                     similarity=match["similarity"],
-                    frame_url=frame_url,
+                    frame_url=frame_path,
                 )
 
             video.status = "completed"
             await session.commit()
 
-            return statistics
+            # response contains frame_bytes (JPEG binary) — strip it, it is not JSON-serializable
+            response_statistics = {
+                key: value
+                for key, value in statistics.items()
+                if key != "matches"
+            }
+            response_statistics["matches"] = [
+                {
+                    "person_id": match["person_id"],
+                    "timestamp": match["timestamp"],
+                    "similarity": match["similarity"],
+                }
+                for match in statistics["matches"]
+            ]
+
+            return response_statistics
 
         except Exception:
             video.status = "failed"

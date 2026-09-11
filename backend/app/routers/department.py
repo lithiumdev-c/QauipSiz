@@ -41,7 +41,6 @@ async def get_departments(
 @router.get('/{department_id}')
 async def get_department(
     department_id:int,
-    payload: DepartmentUpdate,
     db: session_dep,
     current_user: Annotated[dict, Depends(get_current_user)]
 ):

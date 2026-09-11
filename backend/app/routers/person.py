@@ -109,3 +109,17 @@ async def upload_person_photo(
         file=photo,
         current_user_id=current_user['id']
     )
+
+@router.get(
+    '/{person_id}/photo/url',
+)
+async def get_person_photo_url(
+    person_id: int,
+    db: session_dep,
+    current_user: Annotated[dict, Depends(get_current_user)],
+):
+    return await PersonService.get_photo_url(
+        session=db,
+        person_id=person_id,
+        current_user_id=current_user['id']
+    )

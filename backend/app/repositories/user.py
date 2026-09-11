@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi import HTTPException
@@ -14,9 +14,10 @@ from pwdlib.hashers.bcrypt import BcryptHasher
 bcrypt_context = PasswordHash((BcryptHasher(),))
 
 class UserRepository:
+
     @classmethod
     async def create_user_model(cls, data:UserCreate, session:AsyncSession):
-        query = await session.execute(select(User).where(User.username == data.username, User.email == data.email))
+        query = await session.execute(select(User).where(or_(User.username == data.username, User.email == data.email)))
         exist_user = query.scalar_one_or_none()
 
         if exist_user:
@@ -46,3 +47,26 @@ class UserRepository:
             return False
 
         return user
+
+    @classmethod
+    async def get_by_id(
+        cls,
+        session: AsyncSession,
+        user_id: int,
+    ):
+        result = await session.execute(
+            select(User).where(User.id == user_id)
+        )
+
+        return result.scalar_one_or_none()
+
+    @classmethod
+    async def get_all(
+        cls,
+        session: AsyncSession,
+    ):
+        result = await session.execute(
+            select(User).order_by(User.created_at.desc())
+        )
+
+        return list(result.scalars().all())

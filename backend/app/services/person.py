@@ -5,7 +5,7 @@ from app.repositories.person import PersonRepository
 from app.repositories.case import CaseRepository
 from app.schemas.person import PersonUpdate, PersonCreate
 from app.services.organization_member import OrganizationMemberService
-from app.utils.storage import upload_person_photo, delete_person_photo
+from app.utils.storage import upload_person_photo, delete_person_photo, get_person_photo_url
 
 class PersonService:
     @classmethod
@@ -272,3 +272,47 @@ class PersonService:
         except Exception:
             delete_person_photo(photo_path)
             raise
+
+    @classmethod
+    async def get_photo_url(cls, session: AsyncSession, person_id: int, current_user_id: int):
+        person = await PersonRepository.get_person(
+            session=session,
+            person_id=person_id
+        )
+
+        if not person:
+            raise HTTPException(
+                status_code=404,
+                detail='Person not found!'
+            )
+
+        if not person.photo_url:
+            raise HTTPException(
+                status_code=404,
+                detail='Person has no photo!'
+            )
+
+        case = await CaseRepository.get_case(
+            session=session,
+            case_id=person.case_id,
+        )
+
+        if not case:
+            raise HTTPException(
+                status_code=404,
+                detail='Case not found!'
+            )
+
+        member = await OrganizationMemberService.get_member_by_user(
+            session=session,
+            user_id=current_user_id,
+            organization_id=case.organization_id
+        )
+
+        if not member:
+            raise HTTPException(
+                status_code=403,
+                detail='You are not a member of this organization!'
+            )
+
+        return {'url': get_person_photo_url(person.photo_url)}

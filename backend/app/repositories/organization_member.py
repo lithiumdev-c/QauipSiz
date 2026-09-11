@@ -27,7 +27,7 @@ class OrganizationMemberRepository:
         query = await session.execute(
             select(OrganizationMember)
             .where(
-                OrganizationMember.id == organization_id
+                OrganizationMember.organization_id == organization_id
             )
         )
 

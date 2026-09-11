@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Palette ─────────────────────────────────────────────── */
+  --color-ink: #07080b;
+  --color-ink-deep: #04050a;
+  --color-panel: #0c0e13;
+  --color-panel-raised: #10131a;
+  --color-line: #22242e;
+  --color-line-soft: #171922;
+  --color-fg: #f5f6f8;
+  --color-muted: #9aa0ac;
+  --color-dim: #5d6370;
+  --color-violet: #8b5cf6;
+  --color-violet-bright: #a78bfa;
+  --color-violet-deep: #4c1d95;
+  --color-rec: #ff4747;
+
+  /* electric blue accent — informational states, links, live system */
+  --color-blue: #38bdf8;
+  --color-blue-bright: #7dd3fc;
+  --color-blue-deep: #0c2a4a;
+
+  /* semantic status */
+  --color-status-pending: #fbbf24;
+  --color-status-approved: #34d399;
+  --color-status-rejected: #f87171;
+  --color-status-processing: #38bdf8;
+
+  /* ── Type ────────────────────────────────────────────────── */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  /* ── Motion ──────────────────────────────────────────────── */
+  --animate-rec-blink: rec-blink 1.6s steps(1, end) infinite;
+  --animate-scan-drift: scan-drift 7s ease-in-out infinite;
+  --animate-crt-flicker: crt-flicker 4.2s linear infinite;
+  --animate-sweep: sweep 6.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  --animate-boot-bar: boot-bar 2.4s ease-out forwards;
+
+  @keyframes rec-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.15; }
+  }
+  @keyframes scan-drift {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+  }
+  /* extremely subtle luminance flicker for the whole CRT screen */
+  @keyframes crt-flicker {
+    0%, 100% { opacity: 1; }
+    3% { opacity: 0.965; }
+    6% { opacity: 1; }
+    41% { opacity: 0.985; }
+    42% { opacity: 1; }
+    71% { opacity: 0.97; }
+    72% { opacity: 1; }
+  }
+  /* a bright band that sweeps down the screen occasionally */
+  @keyframes sweep {
+    0% { top: -18%; opacity: 0; }
+    8% { opacity: 0.7; }
+    45% { opacity: 0.45; }
+    100% { top: 118%; opacity: 0; }
+  }
+  @keyframes boot-bar {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgba(139, 92, 246, 0.4);
+  color: #fff;
+}
+
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-violet-bright);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ── CRT screen system ─────────────────────────────────────── */
+
+/* scanlines: fine horizontal raster lines */
+.crt-scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.028) 0px,
+    rgba(255, 255, 255, 0.028) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* aperture-grille phosphor texture */
+.crt-grille {
+  background-image: repeating-linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.014) 0px,
+    rgba(255, 255, 255, 0.014) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* vignette = gentle tube curvature, corners fall off */
+.crt-vignette {
+  background:
+    radial-gradient(120% 90% at 50% 45%, transparent 58%, rgba(0, 0, 0, 0.5) 100%),
+    radial-gradient(70% 55% at 50% 50%, rgba(167, 139, 250, 0.05), transparent 70%);
+}
+
+/* the wordmark itself — soft phosphor bloom, no neon */
+.crt-wordmark {
+  color: #eceef6;
+  text-shadow:
+    0 0 1px rgba(236, 238, 246, 0.6),
+    0 0 14px rgba(167, 139, 250, 0.28),
+    0 0 34px rgba(76, 29, 149, 0.32);
+}
+
+/* faint horizontal banding across the wordmark (analog interference) */
+.crt-wordmark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(0, 0, 0, 0.16) 3px,
+    rgba(0, 0, 0, 0.16) 4px
+  );
+  pointer-events: none;
+}
+
+/* grain via tiny repeating noise gradient */
+.crt-grain {
+  background-image:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.012) 0% 25%, transparent 0% 50%);
+  background-size: 7px 7px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

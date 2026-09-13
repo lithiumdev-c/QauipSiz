@@ -7,6 +7,11 @@ from app.core.config import settings
 from app.core.database import engine, Base
 from app.routers import auth, department, organization, organization_members, case, person, video, detection, match, organization_request, users
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with cast(AsyncContextManager, engine.begin()) as conn:
@@ -16,9 +21,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+CORS_URL = os.getenv('FRONTEND_URL')
+
+if CORS_URL is None:
+    raise ValueError('Frontend not found!')
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=CORS_URL,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

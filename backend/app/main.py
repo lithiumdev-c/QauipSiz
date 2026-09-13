@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from typing import AsyncContextManager, cast
 
-from app.core.config import settings
 from app.core.database import engine, Base
 from app.routers import auth, department, organization, organization_members, case, person, video, detection, match, organization_request, users
 
